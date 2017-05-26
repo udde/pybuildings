@@ -33,15 +33,15 @@ class FeatureExtractionLayout(QVBoxLayout):
         self.addLayout(self.implementation)
         
         #Button to invoke get regions or multi regions using the selected implementation
-        self.planes_button = QPushButton("Fit Planes")
-        self.planes_button.setEnabled(self.method != None)
-        self.planes_button.clicked.connect(self.setPlanes)
-        self.addWidget(self.planes_button)
+        self.features_button = QPushButton("Extract roof features")
+        self.features_button.setEnabled(self.method != None)
+        self.features_button.clicked.connect(self.setFeatures)
+        self.addWidget(self.features_button)
     
     def setFeatures(self):
         self.parent.setFeatures(
-            self.method.fitMultiFeatures( self.parent.current_data['points'], self.parent.current_data['planes']), 
-            self.method.fitMultiFeatures( self.parent.current_data['top_dog_points'], self.parent.current_data['top_dog_planes']) )
+            self.method.extractMultiFeatures( self.parent.current_data['points'], self.parent.current_data['regions'], self.parent.current_data['planes']), 
+            self.method.extractMultiFeatures( self.parent.current_data['top_dog_points'], self.parent.current_data['top_dog_regions'], self.parent.current_data['top_dog_planes']) )
 
 
     def selectMethod(self, i):
@@ -54,7 +54,7 @@ class FeatureExtractionLayout(QVBoxLayout):
             print("Plane Fitting method selected:", i)
 
         #Enable buttons
-        self.planes_button.setEnabled(self.method != None and 'planes' in self.parent.current_data)
+        self.features_button.setEnabled(self.method != None and 'planes' in self.parent.current_data)
 
     
 def printModel(model):

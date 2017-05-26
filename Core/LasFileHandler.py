@@ -186,11 +186,18 @@ class LasFileHandler(object):
         self.__nr_of_variable_length_records = int.from_bytes(f.read(4),'little', signed = False)
 
         bytes = f.read(1)
-        self.__point_data_format_id = int.from_bytes(bytes,'little', signed = False) #TODO: this is supposed to be char
-   
 
-        self.__point_data_record_length = int.from_bytes(f.read(2),'little', signed = False)
-        tmpint = int.from_bytes(f.read(4),'little', signed = False)
+        char = struct.unpack('B', bytes)
+
+        xcv = int.from_bytes(bytes,'little', signed = False) #TODO: this is supposed to be char
+        
+        self.__point_data_format_id = xcv
+
+        blabla = int.from_bytes(f.read(2), sys.byteorder, signed = False)
+        self.__point_data_record_length = blabla
+
+        
+        tmpint = int.from_bytes(f.read(4), sys.byteorder, signed = False)
         self.__nr_of_point_records = tmpint
         
 
@@ -203,7 +210,7 @@ class LasFileHandler(object):
             int.from_bytes(f.read(4),sys.byteorder, signed = False),
             int.from_bytes(f.read(4),sys.byteorder, signed = False),
             int.from_bytes(f.read(4),sys.byteorder, signed = False)
-            ]
+        ]
 
 
         x = "break"
@@ -253,7 +260,7 @@ class LasFileHandler(object):
 
             #Read points from file
             timer.start("Reading all {} points from file".format(self.__nr_of_point_records))
-            all_data = array.array('l')
+            all_data = array.array('i')
             all_data.fromfile(f, self.__nr_of_point_records*7)
             timer.stop_latest()
 

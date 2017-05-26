@@ -292,7 +292,9 @@ class Canvas3D(app.Canvas):
         self.current_data = currentdata
         self.render_params = {
             'transparent': False,
-            'top_dogs_only': False
+            'top_dogs_only': False,
+            'draw_polygons': True,
+            'draw_points': True
         }
         self.__parent__ = parent
         self.__data_handler = data_handler
@@ -303,7 +305,6 @@ class Canvas3D(app.Canvas):
         }
 
         self.setupCanvas()
-
 
         #Render objects 
         self.render_objects = []
@@ -386,7 +387,7 @@ class Canvas3D(app.Canvas):
         self.update()
 
     def points(self):
-        #self.setup_points_selected = self.setup_points;
+        self.setup_points_selected = self.setup_points;
         self.readTheData()
         self.setup_points()
     
@@ -395,13 +396,17 @@ class Canvas3D(app.Canvas):
 
     def features(self):
         self.setup_polygons_selected = self.setup_features;
+        self.setup_polygons_selected()
+        self.update()
 
     def regions(self):
+        self.setup_points_selected = self.setup_regions;
         self.slice_regions = self.current_data['regions']
         self.top_dogs_regions = self.current_data['top_dog_regions']
         self.setup_regions()
 
     def planes(self):
+        self.setup_points_selected = self.setup_regions;
         self.all_planes = self.current_data['planes']
         self.top_dog_planes = self.current_data['top_dog_planes']
         self.setup_planes()
@@ -443,7 +448,9 @@ class Canvas3D(app.Canvas):
         verts = np.zeros(0, [('position', np.float32, 3),('normal', np.float32, 3),('color', np.float32, 3)]) #start with an empty array
         colors = distinct_colors(2)
         
-        for i in range(len(self.__solids)):
+        features = self.current_data['top_dog_features']
+
+        for i in range(len(features)):
             if self.render_params['top_dogs_only']:
                 if self.__bfps[i].id in self.__top_dogs:
                     get_verts = self.__solids[i].get_gl_vertex_data(self.__offset)
@@ -499,7 +506,7 @@ class Canvas3D(app.Canvas):
     
     def setup_planes(self):
         
-        self.setup_points_selected = self.setup_planes
+        self.setup_points_selected = self.setup_regions
         
         all_points = np.array(self.__points)
         
@@ -560,7 +567,8 @@ class Canvas3D(app.Canvas):
                     #assert(m == n) m innehåller inte alla points då de kan ha försvunnit i små regions
 
                     for j in range(len(regions)):
-                        plane = pf.fitPlane(points[regions[j]])
+                        #plane = pf.fitPlane(points[regions[j]])
+                        plane = self.selected_planes[current_regions][j]
                         points[regions[j]] = elevatePointsToPlane(points[regions[j]], plane)
 
                     datapoints = data[start:start+n]
@@ -575,8 +583,9 @@ class Canvas3D(app.Canvas):
                 #assert(m == n) m innehåller inte alla points då de kan ha försvunnit i små regions
 
                 for j in range(len(regions)):
-                        plane = pf.fitPlane(points[regions[j]])
-                        points[regions[j]] = elevatePointsToPlane(points[regions[j]], plane)
+                    #plane = pf.fitPlane(points[regions[j]])
+                    plane = self.selected_planes[current_regions][j]
+                    points[regions[j]] = elevatePointsToPlane(points[regions[j]], plane)
                 datapoints = data[start:start+n]
                 self.setupRegionData(datapoints, regions, points)
                 current_regions += 1
@@ -797,8 +806,11 @@ class Canvas3D(app.Canvas):
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         gl.glClear(gl.GL_DEPTH_BUFFER_BIT)
         
-        self.draw_model()
-        self.draw_points()
+        if self.render_params['draw_polygons']:
+            self.draw_model()
+        
+        if self.render_params['draw_points']:
+            self.draw_points()
 
 
     def on_resize(self, event):

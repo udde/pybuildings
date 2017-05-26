@@ -22,19 +22,19 @@ def main ():
     propertys_path = "ay_get_shp/ay_get"
     las_path = "datafromndr/norrkoping.las"
 
-    points = readPointsFromFile("PolygonPoints.txt") # read strykjarnet from file
-    points = removeOutliers(points, mode='sor', max=2)
-    points = [points]
+    #points = readPointsFromFile("PolygonPoints.txt") # read strykjarnet from file
+    #points = removeOutliers(points, mode='sor', max=2)
+    #points = [points]
 
-    #data_handler = DataHandler(buildings_path,propertys_path,las_path)
-    #bfps, points, solids, property_area, mbb, top_dogs = data_handler.get_slice_from_property(1594) #Djupet 1593 #Diket 1592 1375 1343 1588 taet data: 1015 843 tre nivaer: 1594
+    data_handler = DataHandler(buildings_path,propertys_path,las_path)
+    bfps, points, solids, property_area, mbb, top_dogs = data_handler.get_slice_from_property(1594) #Djupet 1593 #Diket 1592 1375 1343 1588 taet data: 1015 843 tre nivaer: 1594
 
-    #points = [points[i] for i in range(len(points)) if bfps[i].id in top_dogs]
-    #points = [points[0]]
+    points = [points[i] for i in range(len(points)) if bfps[i].id in top_dogs]
+    points = [points[0]]
 
-    #offset = np.mean(property_area.points,0)
-    #for p in points:
-    #    p[:,0:2] -= offset
+    offset = np.mean(property_area.points,0)
+    for p in points:
+        p[:,0:2] -= offset
 
     rg = SunRegionGrowing()
     regions = rg.getMultiRegions(points)

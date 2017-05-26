@@ -40,14 +40,14 @@ def main ():
     buildings_path = "by_get_shp/by_get"                   ##read points from datahandler
     propertys_path = "ay_get_shp/ay_get"
     las_path = "datafromndr/norrkoping.las"
-    data_handler = DataHandler(buildings_path,propertys_path,las_path)
-    bfps, points, solids, property_area, mbb, top_dogs = data_handler.get_slice_from_property(1593) #Djupet 1593 #Diket 1592 1375 1343 1588 taet data: 1015 843 tre nivaer: 1594
+    #data_handler = DataHandler(buildings_path,propertys_path,las_path)
+    #bfps, points, solids, property_area, mbb, top_dogs = data_handler.get_slice_from_property(1593) #Djupet 1593 #Diket 1592 1375 1343 1588 taet data: 1015 843 tre nivaer: 1594
 
-    points = [points[i] for i in range(len(points)) if bfps[i].id in top_dogs]
+    #points = [points[i] for i in range(len(points)) if bfps[i].id in top_dogs]
     
-    #points = readPointsFromFile("PolygonPoints.txt") # read strykjarnet from file
-    #points = removeOutliers(points, mode='sor', max=2)
-    #points = [points]
+    points = readPointsFromFile("PolygonPoints.txt") # read strykjarnet from file
+    points = removeOutliers(points, mode='sor', max=2)
+    points = [points]
     #print(len(points), " in top dogs... sending to regiongrowing")
     rg = SunRegionGrowing()
     regions = rg.getMultiRegions(points)
@@ -78,26 +78,13 @@ def main ():
         #f.write("\n")
 
     pf = LeastSquarePlaneFitting()
-    planes = []
 
-    regions_planes = []
-    for i in range(len(points)):
-        innner_points = points[i]
-        inner_regions = regions[i]
-        planes = []
-        for region in inner_regions:
-            points_in_region = innner_points[region]
-            plane = pf.fitPlane(points_in_region)
-            planes.append(plane)
-            #innner_points[region] = elevatePointsToPlane(points[i][region], plane)
-        regions_planes.append(planes)
+    regions_planes = pf.fitMultiPlaneGroups(points, regions)
 
-    for i in range(len(points)):
-        innner_points = points[i]
-        inner_regions = regions[i]
-        for j in range(len(inner_regions)):
-            points_in_region = innner_points[inner_regions[j]]
-            innner_points[inner_regions[j]] = elevatePointsToPlane(points[i][inner_regions[j]], regions_planes[i][j])
+
+    for inner_points, inner_regions, inner_planes in zip(points, regions, regions_planes):
+        for region, plane in zip(inner_regions, inner_planes):
+            inner_points[region] = elevatePointsToPlane(inner_points[region], plane)
 
     #for region in regions[0]: # project points to planes
     #    planeq = pf.fitPlane(points[0][region])

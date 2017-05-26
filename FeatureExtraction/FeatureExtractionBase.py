@@ -6,11 +6,23 @@ class FeatureExtractionBase():
         raise NotImplementedError("Please Implement this method")
     def setupParams(self):
         raise NotImplementedError("Please Implement this method")
-    def extractFeature(self, points):
+    def extractFeature(self, points, plane):
         raise NotImplementedError("Please Implement this method")
-    def extractMultiFeatures(self, points):
+    def extractFeatureGroup(self, points, regions, planes):
         self.setupParams()
         features = []
-        for points in points:
-            planes.append(self.extractFeature(points))
-        return planes
+
+        if len(points) != len(planes):
+            print()
+            print()
+            print("Warning,nr of  points and planes dosnt match")
+            print()
+            print()
+
+        for points, plane in zip(points, planes):
+            features.append(self.extractFeature(points, plane))
+
+        return features
+
+    def extractMultiFeatureGroups(self):
+        pass

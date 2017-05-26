@@ -40,10 +40,15 @@ class PlaneFittingLayout(QVBoxLayout):
         self.addWidget(self.planes_button)
     
     def setPlanes(self):
-        self.parent.setPlanes(
-            self.method.fitMultiPlanes( self.parent.current_data['points']), 
-            self.method.fitMultiPlanes( self.parent.current_data['top_dog_points']) )
 
+        all = None
+        if self.parent.__parent__.canvas_3d.render_params['top_dogs_only'] == False:
+            all = self.method.fitMultiPlaneGroups( self.parent.current_data['points'], self.parent.current_data['regions'])
+        
+        self.parent.setPlanes( 
+            all,
+            self.method.fitMultiPlaneGroups( self.parent.current_data['top_dog_points'], self.parent.current_data['top_dog_regions'])
+        )
 
     def selectMethod(self, i):
         if i == 0:

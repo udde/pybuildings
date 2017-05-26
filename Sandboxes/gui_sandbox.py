@@ -107,6 +107,12 @@ class PipelineWidget(QWidget):
         self.rendering_layout = QVBoxLayout()
         self.rendering_group.setMaximumWidth(220)
         self.rendering_group.setLayout(self.rendering_layout)
+        
+        # render polygons 
+        self.render_polygons_checkbox = QCheckBox("Render polygons?")
+        self.render_polygons_checkbox.setChecked(True)
+        self.render_polygons_checkbox.stateChanged.connect(lambda: self.setDrawPolygons(self.render_polygons_checkbox.isChecked()))
+        self.rendering_layout.addWidget(self.render_polygons_checkbox)
         # transparent checkbox
         self.transparent_checkbox = QCheckBox("Transparent buildings")
         self.transparent_checkbox.setChecked(False)
@@ -117,6 +123,12 @@ class PipelineWidget(QWidget):
         self.topdogs_checkbox.setChecked(False)
         self.topdogs_checkbox.stateChanged.connect(lambda: self.dogs(self.topdogs_checkbox.isChecked()))
         self.rendering_layout.addWidget(self.topdogs_checkbox)
+        
+        # render points 
+        self.render_points_checkbox = QCheckBox("Render points?")
+        self.render_points_checkbox.setChecked(True)
+        self.render_points_checkbox.stateChanged.connect(lambda: self.setDrawPoints(self.render_points_checkbox.isChecked()))
+        self.rendering_layout.addWidget(self.render_points_checkbox)
         # reset points 
         self.reset_points_button = QPushButton("reset points")
         self.reset_points_button.clicked.connect(lambda: self.reset_points())
@@ -136,7 +148,7 @@ class PipelineWidget(QWidget):
 
         #PLANE FITTING GROUP
         self.features_group = QGroupBox("Roof features creation")
-        self.features_layout = Gui.RoofFeaturesLayout(self)
+        self.features_layout = Gui.FeatureExtractionLayout(self)
         self.features_group.setMaximumWidth(220)
         self.features_group.setLayout(self.features_layout)
 
@@ -155,12 +167,18 @@ class PipelineWidget(QWidget):
 
         self.setLayout(self.parent_layout)
     
+    def setDrawPoints(self, bool):
+        self.__parent__.canvas_3d.render_params['draw_points'] = bool
+        self.__parent__.canvas_3d.updateCanvas()
+
+    def setDrawPolygons(self, bool):
+        self.__parent__.canvas_3d.render_params['draw_polygons'] = bool
+        self.__parent__.canvas_3d.updateCanvas()
+
     def setRegions(self, regions, topregions):
         self.current_data['regions'] = regions
         self.current_data['top_dog_regions'] = topregions
         self.__parent__.canvas_3d.regions()
-        #TODO: #self.__parent__.canvas_3d.regions(regions, self.current_data['points'], self.current_data['topdogs'])
-        pass
 
     def reset_points(self):
         self.__parent__.canvas_3d.points()
@@ -169,13 +187,11 @@ class PipelineWidget(QWidget):
         self.current_data['planes'] = planes
         self.current_data['top_dog_planes'] = topplanes
         self.__parent__.canvas_3d.planes()
-        pass
 
     def setFeatures(self, features, topfeatures):
         self.current_data['features'] = features
         self.current_data['top_dog_features'] = topfeatures
         self.__parent__.canvas_3d.features()
-        pass
 
     def transp(self, bool):
         self.__parent__.canvas_3d.render_params['transparent'] = bool

@@ -11,3 +11,4 @@ from .Clustering import *
 from .PlaneFitting import * 
 from .GuiUtils import *
 from .RoofFeatures import *
+from .FeatureExtraction import *
