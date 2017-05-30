@@ -27,7 +27,7 @@ def main ():
     #points = [points]
 
     data_handler = DataHandler(buildings_path,propertys_path,las_path)
-    bfps, points, solids, property_area, mbb, top_dogs = data_handler.get_slice_from_property(1594) #Djupet 1593 #Diket 1592 1375 1343 1588 taet data: 1015 843 tre nivaer: 1594
+    bfps, points, solids, property_area, mbb, top_dogs = data_handler.get_slice_from_property(1592) #Djupet 1593 #Diket 1592 1375 1343 1588 taet data: 1015 843 tre nivaer: 1594
 
     points = [points[i] for i in range(len(points)) if bfps[i].id in top_dogs]
     points = [points[0]]

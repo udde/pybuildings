@@ -39,9 +39,14 @@ class FeatureExtractionLayout(QVBoxLayout):
         self.addWidget(self.features_button)
     
     def setFeatures(self):
+        all = None
+        if self.parent.__parent__.canvas_3d.render_params['top_dogs_only'] == False:
+            
+            all = self.method.extractMultiFeatureGroups( self.parent.current_data['points'], self.parent.current_data['regions'], self.parent.current_data['planes'])
+        
         self.parent.setFeatures(
-            self.method.extractMultiFeatures( self.parent.current_data['points'], self.parent.current_data['regions'], self.parent.current_data['planes']), 
-            self.method.extractMultiFeatures( self.parent.current_data['top_dog_points'], self.parent.current_data['top_dog_regions'], self.parent.current_data['top_dog_planes']) )
+            all, 
+            self.method.extractMultiFeatureGroups( self.parent.current_data['top_dog_points'], self.parent.current_data['top_dog_regions'], self.parent.current_data['top_dog_planes']) )
 
 
     def selectMethod(self, i):

@@ -114,7 +114,7 @@ class PipelineWidget(QWidget):
         self.render_polygons_checkbox.stateChanged.connect(lambda: self.setDrawPolygons(self.render_polygons_checkbox.isChecked()))
         self.rendering_layout.addWidget(self.render_polygons_checkbox)
         # transparent checkbox
-        self.transparent_checkbox = QCheckBox("Transparent buildings")
+        self.transparent_checkbox = QCheckBox("Transparent polygons")
         self.transparent_checkbox.setChecked(False)
         self.transparent_checkbox.stateChanged.connect(lambda: self.transp(self.transparent_checkbox.isChecked()))
         self.rendering_layout.addWidget(self.transparent_checkbox)
@@ -191,6 +191,41 @@ class PipelineWidget(QWidget):
     def setFeatures(self, features, topfeatures):
         self.current_data['features'] = features
         self.current_data['top_dog_features'] = topfeatures
+        
+        import mpl_toolkits.mplot3d as a3
+        import matplotlib.colors as colors
+        import pylab as pl
+        import scipy as sp
+        import triangle
+        ax = a3.Axes3D(pl.figure())
+        colors = [[1,0,0],[0,1,0], [0,0,1], [0.65, 0.65, 0], [0, 0.65, 0.65], [0.65, 0, 0.65], [0.43, 0.43, 0.43]]
+        
+
+        f = features
+        if f == None:
+            f = topfeatures
+
+        cid = 0
+        for feature_group in f:
+            for feature in feature_group:
+                roofPolys = feature["roof"].get_triangles_as_polygons()
+                wallPolys = feature["walls"].get_triangles_as_polygons()
+                #vertexdata = feature.get_gl_vertex_data()
+
+                tri = a3.art3d.Poly3DCollection([poly.exterior.coords for poly in wallPolys])
+                tri.set_facecolor([0.8,0.8, 0.8])
+                ax.add_collection3d(tri)
+                tri = a3.art3d.Poly3DCollection([poly.exterior.coords for poly in roofPolys])
+                tri.set_facecolor(colors[cid%7])
+                
+                ax.add_collection3d(tri)
+            cid += 1
+        ax.view_init(elev=39, azim=-55)
+        ax.set_xlim3d(-30, 30)
+        ax.set_ylim3d(-30, 30)
+        ax.set_zlim3d(0, 60)
+        pl.show()
+
         self.__parent__.canvas_3d.features()
 
     def transp(self, bool):
@@ -238,7 +273,7 @@ class MainWindow(QMainWindow):
         self.setupLayout()
         #self.__focus_building_id = 0
 
-        self.set_slice(1593)
+        self.set_slice(1592) #1593
         self.show()
  
     #Is called from the property list

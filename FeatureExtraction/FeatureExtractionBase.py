@@ -12,17 +12,23 @@ class FeatureExtractionBase():
         self.setupParams()
         features = []
 
-        if len(points) != len(planes):
+        if len(regions) != len(planes):
             print()
             print()
-            print("Warning,nr of  points and planes dosnt match")
+            print("Warning,nr of  regions and planes dosnt match")
             print()
             print()
 
-        for points, plane in zip(points, planes):
-            features.append(self.extractFeature(points, plane))
+        for region, plane in zip(regions, planes):
+            features.append(self.extractFeature(points[region], plane))
 
         return features
 
-    def extractMultiFeatureGroups(self):
-        pass
+    def extractMultiFeatureGroups(self, all_points, all_regions_groups, all_plane_groups):
+        
+        features_groups = []
+        
+        for points, regions, planes in zip(all_points, all_regions_groups, all_plane_groups): 
+            features_groups.append( self.extractFeatureGroup(points, regions, planes) )
+
+        return features_groups

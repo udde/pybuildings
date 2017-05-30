@@ -16,16 +16,18 @@ class PlaneFittingBase():
         return planes
 
     def fitMultiPlaneGroups(self, points, regions):
-        print()
-        print("points: ", points)
-        print("regions: ", regions)
-        print()
+        #print()
+        #print("points: ", points)
+        #print("regions: ", regions)
+        #print()
 
         if regions == None:
             print("warning no regions object")
 
         if len(points) != len(regions):
             print("warning here length dosnt match!")
+            print("points: ", points)
+            print("regions: ", regions)
 
         plane_groups = []
 
