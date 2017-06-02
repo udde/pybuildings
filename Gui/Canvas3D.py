@@ -56,18 +56,18 @@ uniform float u_alpha;
 void main()
 {
     
-    vec3 l0 = normalize(vec3( 1.0, 1.0, 0.0 ));
-    vec3 l1 = normalize(vec3( -1.0, -1.0, 0.5 ));
+    vec3 l0 = normalize(vec3( 1.0, 1.0, 0.2 ));
+    vec3 l1 = normalize(vec3( -1.0, -1.0, 0.6 ));
 
     vec3 norm = v_norm;
 
-    float amb = 0.4;
+    float amb = 0.65;
 
     float d0 = 0.7 * min(dot( norm, l0 ), 1.0);
     float d1 = 0.7 * min(dot( norm, l1 ), 1.0);
     
     vec3 color = v_color;
-    gl_FragColor.xyz = (amb + d0 + d1 ) * color;
+    gl_FragColor.xyz = min((amb + d0 + d1 ), 1.0) * color;
     gl_FragColor.a = u_alpha;
 }
 """
@@ -271,17 +271,6 @@ void main()
 }
 """
 
-class BuildingObject():
-
-    def __init__(self, idx, points, bfp, solid):
-        self.idx = idx
-        self.original_points = points
-        self.points = np.copy(points)
-        self.bfp = bfp
-        self.solid = solid
-        self.regions = []
-
-
 
 class Canvas3D(app.Canvas):
 
@@ -458,13 +447,14 @@ class Canvas3D(app.Canvas):
         base_roof_color = [0.35, 0.35, 0.35]
 
         wallcolor = [0.72, 0.72, 0.72]
+        yellow = [1, 0.76, 0]
         topwallcolor = [0.94, 0.94, 0.99]
 
         origin = [0, 0]
 
         for feature_group, gid in zip(all_feature_groups, range(len(all_feature_groups))):
             
-            feature_group_wall_color = wallcolor
+            feature_group_wall_color = yellow
             feature_roof_color = base_roof_color
             
             top_roof_colors = distinct_colors(len(feature_group))
@@ -492,28 +482,9 @@ class Canvas3D(app.Canvas):
                 data['normal'] = get_verts['normal']
                 data['color'] = feature_group_wall_color
                 if self.render_params['debug_color']:
-                    data['color'] = top_roof_colors[fid]
+                    data['color'] = [i*1.3 for i in top_roof_colors[fid] ]
+                
                 verts = np.concatenate([verts, data])
-
-        #for i in range(len(features)):
-        #    if self.render_params['top_dogs_only']:
-        #        if self.__bfps[i].id in self.__top_dogs:
-        #            get_verts = self.__solids[i].get_gl_vertex_data(self.__offset)
-        #            data = np.zeros(len(get_verts), [('position', np.float32, 3),('normal', np.float32, 3),('color', np.float32, 3)])
-        #            data['position'] = get_verts['position']
-        #            data['normal'] = get_verts['normal']
-        #            data['color'] = colors[1]
-        #            verts = np.concatenate([verts, data])
-        #    else:
-        #        get_verts = self.__solids[i].get_gl_vertex_data(self.__offset)
-        #        data = np.zeros(len(get_verts), [('position', np.float32, 3),('normal', np.float32, 3),('color', np.float32, 3)])
-        #        data['position'] = get_verts['position']
-        #        data['normal'] = get_verts['normal']
-        #        if self.__bfps[i].id in self.__top_dogs:
-        #                data['color'] = colors[1]
-        #        else:
-        #            data['color'] = colors[0]
-        #        verts = np.concatenate([verts, data])
 
         self.program_solids.bind(VertexBuffer(verts))
 

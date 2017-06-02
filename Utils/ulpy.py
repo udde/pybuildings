@@ -198,6 +198,6 @@ def points_in_rectangle(points,polygon):
 def distinct_colors(n_colors):
     import colorsys
     N = n_colors
-    HSV_tuples = [(x*1.0/N, 0.9, 0.9) for x in range(N)]
+    HSV_tuples = [(x*1.0/N, 0.7, 0.7) for x in range(N)]
     RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
     return RGB_tuples

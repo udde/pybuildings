@@ -57,7 +57,7 @@ class GisPolygon():
 
     def triangulate(self, flags: str = 'pXqi'):
 
-        total_edge_segments = np.array([], dtype=np.int).reshape(0,2)
+        total_edge_segments = np.array([], dtype=np.int).reshape(0,2) 
         holes = []
         centers = []
         #print(self.__id)

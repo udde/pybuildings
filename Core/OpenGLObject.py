@@ -113,6 +113,8 @@ class OpenGLObject(object):
         
         if new_origin == None:
             new_origin = self.__object_center
+        if new_origin == "inget":
+            new_origin = [0,0]
 
         triangle_verts = copy.deepcopy(self.__triangle_verts)
         

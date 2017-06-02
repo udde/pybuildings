@@ -8,6 +8,7 @@ class FeatureExtractionBase():
         raise NotImplementedError("Please Implement this method")
     def extractFeature(self, points, plane):
         raise NotImplementedError("Please Implement this method")
+    
     def extractFeatureGroup(self, points, regions, planes):
         self.setupParams()
         features = []
