@@ -29,9 +29,9 @@ import Gui
 from Core import DataHandler
 
 class PlotObject():
-    
+
     def __init__(self, parent=None):
-        
+
         # a figure instance to plot on
         self.figure = plt.figure()
 
@@ -74,11 +74,11 @@ class PlotObject():
 
 
 class PipelineWidget(QWidget):
-   
+
     def __init__(self, parent, data):
-    
+
         QWidget.__init__(self)
-        
+
         self.__parent__ = parent
         self.__data_handler = data
         self.current_data = {}
@@ -95,20 +95,20 @@ class PipelineWidget(QWidget):
         #DATA GROUP
         self.data_group = QGroupBox("Data")
         self.data_layout = QVBoxLayout()
-        self.data_group.setMaximumWidth(220)
+        self.data_group.setMaximumWidth(250)
         self.data_group.setLayout(self.data_layout)
 
         #self.bfp_checkbox = QCheckBox("Bfp blocks")
         #self.bfp_checkbox.setChecked(False)
         #self.bfp_checkbox.stateChanged.connect(lambda: self.bfps(self.bfp_checkbox.isChecked() ))
-        
+
         #RENDER GROUP
         self.rendering_group = QGroupBox("Rendering")
         self.rendering_layout = QVBoxLayout()
-        self.rendering_group.setMaximumWidth(220)
+        self.rendering_group.setMaximumWidth(250)
         self.rendering_group.setLayout(self.rendering_layout)
-        
-        # render polygons 
+
+        # render polygons
         self.render_polygons_checkbox = QCheckBox("Render polygons?")
         self.render_polygons_checkbox.setChecked(True)
         self.render_polygons_checkbox.stateChanged.connect(lambda: self.setDrawPolygons(self.render_polygons_checkbox.isChecked()))
@@ -123,33 +123,38 @@ class PipelineWidget(QWidget):
         self.topdogs_checkbox.setChecked(False)
         self.topdogs_checkbox.stateChanged.connect(lambda: self.dogs(self.topdogs_checkbox.isChecked()))
         self.rendering_layout.addWidget(self.topdogs_checkbox)
-        
-        # render points 
+
+        # render points
         self.render_points_checkbox = QCheckBox("Render points?")
         self.render_points_checkbox.setChecked(True)
         self.render_points_checkbox.stateChanged.connect(lambda: self.setDrawPoints(self.render_points_checkbox.isChecked()))
         self.rendering_layout.addWidget(self.render_points_checkbox)
-        # reset points 
+        # reset points
         self.reset_points_button = QPushButton("reset points")
         self.reset_points_button.clicked.connect(lambda: self.reset_points())
         self.rendering_layout.addWidget(self.reset_points_button)
+        #Colors
+        self.colors_checkbox = QCheckBox("Debug colors")
+        self.colors_checkbox.setChecked(False)
+        self.colors_checkbox.stateChanged.connect(lambda: self.colors(self.colors_checkbox.isChecked()))
+        self.rendering_layout.addWidget(self.colors_checkbox)
 
         #CLUSTERING GROUP
         self.cluster_group = QGroupBox("Clustering")
         self.cluster_layout = Gui.ClusterLayout(self)
-        self.cluster_group.setMaximumWidth(220)
+        self.cluster_group.setMaximumWidth(300)
         self.cluster_group.setLayout(self.cluster_layout)
-        
+
         #PLANE FITTING GROUP
         self.plane_group = QGroupBox("Plane Fitting")
         self.plane_layout = Gui.PlaneFittingLayout(self)
-        self.plane_group.setMaximumWidth(220)
+        self.plane_group.setMaximumWidth(200)
         self.plane_group.setLayout(self.plane_layout)
 
         #PLANE FITTING GROUP
         self.features_group = QGroupBox("Roof features creation")
         self.features_layout = Gui.FeatureExtractionLayout(self)
-        self.features_group.setMaximumWidth(220)
+        self.features_group.setMaximumWidth(300)
         self.features_group.setLayout(self.features_layout)
 
 
@@ -166,7 +171,7 @@ class PipelineWidget(QWidget):
         self.parent_layout.addLayout(self.pipeline_layout)
 
         self.setLayout(self.parent_layout)
-    
+
     def setDrawPoints(self, bool):
         self.__parent__.canvas_3d.render_params['draw_points'] = bool
         self.__parent__.canvas_3d.updateCanvas()
@@ -188,49 +193,53 @@ class PipelineWidget(QWidget):
         self.current_data['top_dog_planes'] = topplanes
         self.__parent__.canvas_3d.planes()
 
+    def colors(self, value):
+        self.__parent__.canvas_3d.render_params['debug_colors'] = value
+
     def setFeatures(self, features, topfeatures):
         self.current_data['features'] = features
         self.current_data['top_dog_features'] = topfeatures
-        
-        import mpl_toolkits.mplot3d as a3
-        import matplotlib.colors as colors
-        import pylab as pl
-        import scipy as sp
-        import triangle
-        ax = a3.Axes3D(pl.figure())
-        colors = [[1,0,0],[0,1,0], [0,0,1], [0.65, 0.65, 0], [0, 0.65, 0.65], [0.65, 0, 0.65], [0.43, 0.43, 0.43]]
-        
 
-        f = features
-        if f == None:
-            f = topfeatures
 
-        cid = 0
-        for feature_group in f:
-            for feature in feature_group:
-                roofPolys = feature["roof"].get_triangles_as_polygons()
-                wallPolys = feature["walls"].get_triangles_as_polygons()
-                #vertexdata = feature.get_gl_vertex_data()
-
-                tri = a3.art3d.Poly3DCollection([poly.exterior.coords for poly in wallPolys])
-                tri.set_facecolor([0.8,0.8, 0.8])
-                ax.add_collection3d(tri)
-                tri = a3.art3d.Poly3DCollection([poly.exterior.coords for poly in roofPolys])
-                tri.set_facecolor(colors[cid%7])
-                
-                ax.add_collection3d(tri)
-            cid += 1
-        ax.view_init(elev=39, azim=-55)
-        ax.set_xlim3d(-30, 30)
-        ax.set_ylim3d(-30, 30)
-        ax.set_zlim3d(0, 60)
-        pl.show()
+        # import mpl_toolkits.mplot3d as a3
+        # import matplotlib.colors as colors
+        # import pylab as pl
+        # import scipy as sp
+        # import triangle
+        # ax = a3.Axes3D(pl.figure())
+        # colors = [[1,0,0],[0,1,0], [0,0,1], [0.65, 0.65, 0], [0, 0.65, 0.65], [0.65, 0, 0.65], [0.43, 0.43, 0.43]]
+        #
+        #
+        # f = features
+        # if f == None:
+        #     f = topfeatures
+        #
+        # cid = 0
+        # for feature_group in f:
+        #     for feature in feature_group:
+        #         roofPolys = feature["roof"].get_triangles_as_polygons()
+        #         wallPolys = feature["walls"].get_triangles_as_polygons()
+        #         #vertexdata = feature.get_gl_vertex_data()
+        #
+        #         tri = a3.art3d.Poly3DCollection([poly.exterior.coords for poly in wallPolys])
+        #         tri.set_facecolor([0.8,0.8, 0.8])
+        #         ax.add_collection3d(tri)
+        #         tri = a3.art3d.Poly3DCollection([poly.exterior.coords for poly in roofPolys])
+        #         tri.set_facecolor(colors[cid%7])
+        #
+        #         ax.add_collection3d(tri)
+        #     cid += 1
+        # ax.view_init(elev=39, azim=-55)
+        # ax.set_xlim3d(-30, 30)
+        # ax.set_ylim3d(-30, 30)
+        # ax.set_zlim3d(0, 60)
+        # pl.show()
 
         self.__parent__.canvas_3d.features()
 
     def transp(self, bool):
         self.__parent__.canvas_3d.render_params['transparent'] = bool
-            
+
     def dogs(self, bool):
         self.__parent__.canvas_3d.render_params['top_dogs_only'] = bool
         self.__parent__.canvas_3d.updateCanvas()
@@ -249,7 +258,7 @@ class MainWindow(QMainWindow):
     """
 
     def __init__(self, data_handler):
-        
+
         QMainWindow.__init__(self)
 
         self.__data_handler = data_handler
@@ -268,20 +277,20 @@ class MainWindow(QMainWindow):
         self.canvas_3d.native.setParent(self)
 
         self.listWidget = Gui.BuildingListWidget(self, data_handler)
-        
+
 
         self.setupLayout()
         #self.__focus_building_id = 0
 
         self.set_slice(1592) #1593
         self.show()
- 
+
     #Is called from the property list
     def set_slice(self, id):
         print("selected property id: ", id)
         self.pipelineWidget.set_slice_from_property(id)
         self.canvas_3d.setCanvasData()
-             
+
     @property
     def focus_building_id(self):
         return self.__focus_building_id
@@ -293,7 +302,7 @@ class MainWindow(QMainWindow):
         #self.canvas_3d.set_selected(self.__focus_building_id)
 
     def setupLayout(self):
-        
+
         self.verticalSplitter = QSplitter(QtCore.Qt.Vertical)
 
         self.horizontalSplitter = QSplitter(QtCore.Qt.Horizontal)
@@ -304,7 +313,7 @@ class MainWindow(QMainWindow):
         self.mapListSplitter.addWidget(self.canvas_map.native)
 
         self.horizontalSplitter.addWidget(self.mapListSplitter)
-        
+
         self.horizontalSplitter.addWidget(self.canvas_3d.native)
 
         self.verticalSplitter.addWidget(self.horizontalSplitter)
@@ -314,7 +323,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     appQt = QApplication(sys.argv)
-    
+
     #value = Vestibule(None)
 
     #filename = ("by_get_shp/by_get")
@@ -322,13 +331,13 @@ if __name__ == "__main__":
     #shapes = ShapeFileHandler(filename)
 
     #las_dir_path = os.path.dirname(os.path.realpath(__file__))
-    #las_dir_path = las_dir_path + '/datafromndr' 
+    #las_dir_path = las_dir_path + '/datafromndr'
     #las_file_path = las_dir_path + "/norrkoping.las"
     #las = LasFileHandler(las_file_path,8)
-    
+
     #las.read_points()
     #las.read_points()
-    
+
     #mw = MainWindow(shapes, las) #gui main
 
     buildings_path = "by_get_shp/by_get"

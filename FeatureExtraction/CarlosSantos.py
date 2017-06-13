@@ -25,55 +25,57 @@ class CarlosSantosFeatureExtraction (FeatureExtractionBase):
 
     def __init__(self, kvalue = 100, simplificationfactor = 0.1 ):
         FeatureExtractionBase.__init__(self)
-        self.model = { 
+        self.model = {
             'kvalue': kvalue,
             'simplificationfactor': simplificationfactor
         }
         self.setupParams()
-    
+
     def setupParams(self):
         self.k_value = self.model['kvalue']
         self.simplification_factor = self.model['simplificationfactor']
-        
-    
+
+
     def setupGui(self, layout):
         emptyLayout(layout)
-        
+
         self.k_value_layout = QHBoxLayout()
         self.k_value_slider = QtGui.QSlider(QtCore.Qt.Horizontal)
         self.k_value_slider.setMinimum(0)
-        self.k_value_slider.setMaximum(90)
-        self.k_value_slider.setValue(30)
+        self.k_value_slider.setMaximum(250)
+        self.k_value_slider.setValue(self.model['kvalue'])
         self.k_value_label = QtGui.QLabel("Hull K-value")
-        self.k_value_label2 = QtGui.QLabel(str(30))
+        self.k_value_label2 = QtGui.QLabel(str(self.model['kvalue']))
         self.k_value_slider.valueChanged.connect(self.k_value_changed)
-        self.k_value_layout .addWidget(self.k_value_label)
-        self.k_value_layout .addWidget(self.k_value_slider)
-        self.k_value_layout .addWidget(self.k_value_label2)
+        self.k_value_layout.addWidget(self.k_value_label)
+        self.k_value_layout.addWidget(self.k_value_slider)
+        self.k_value_layout.addWidget(self.k_value_label2)
         layout.addLayout(self.k_value_layout )
 
-        self.simplification_layout = QHBoxLayout()
+        self.simplification_layout = QVBoxLayout()
         self.simplification_slider = QtGui.QSlider(QtCore.Qt.Horizontal)
-        self.simplification_slider.setMinimum(0)
-        self.simplification_slider.setMaximum(90)
-        self.simplification_slider.setValue(30)
+        self.simplification_slider.setMinimum(12.5)
+        self.simplification_slider.setMaximum(400)
+        self.simplification_slider.setValue(self.model['simplificationfactor'] * 100)
+        self.innerlayout = QHBoxLayout()
         self.simplification_label = QtGui.QLabel("Simplification factor(HP):")
-        self.simplification_label2 = QtGui.QLabel(str(30))
+        self.simplification_label2 = QtGui.QLabel(str(self.model['simplificationfactor']))
         self.simplification_slider.valueChanged.connect(self.simplification_changed)
-        self.simplification_layout .addWidget(self.simplification_label)
-        self.simplification_layout .addWidget(self.simplification_slider)
-        self.simplification_layout .addWidget(self.simplification_label2)
+        self.simplification_layout.addWidget(self.simplification_label)
+        self.innerlayout.addWidget(self.simplification_slider)
+        self.innerlayout.addWidget(self.simplification_label2)
+        self.simplification_layout.addLayout(self.innerlayout)
         layout.addLayout(self.simplification_layout )
 
 
     def k_value_changed(self):
         self.k_value_label2.setText(str(self.k_value_slider.value()))
-        self.model['kvalue'] = str(self.k_value_slider.value())
+        self.model['kvalue'] = self.k_value_slider.value()
 
     def simplification_changed(self):
-        self.simplification_label2.setText(str(self.simplification_slider.value()))
-        self.model['simplificationfactor'] = str(self.simplification_slider.value())
-    
+        self.simplification_label2.setText(str(self.simplification_slider.value() / 100) + "")
+        self.model['simplificationfactor'] = self.simplification_slider.value() / 100.0
+
     def extractFeature(self, points, planeq):
         self.setupParams()
         print()
@@ -86,14 +88,17 @@ class CarlosSantosFeatureExtraction (FeatureExtractionBase):
         hull_polygon = Polygon(hull2d)
         simpler = hull_polygon.simplify(self.simplification_factor, preserve_topology=False)
 
-        hull2d = [list(tuple) for tuple in list(simpler.exterior.coords)]
+        if simpler != None and simpler.exterior != None:
+            hull2d = [list(tuple) for tuple in list(simpler.exterior.coords)]
+        else:
+            print("warning one feature could not be simplified with this factor")
 
         total_edge_segments = np.array([], dtype=np.int).reshape(0,2)
 
         last = len(hull2d) - 1
         segs = np.array([ [x,x+1] for x in range(last) ])
         segs = np.vstack((segs, np.array([last, 0])))
-        
+
         tridata = {'segments': segs, 'vertices': hull2d}
         tri_result = triangle.triangulate(tridata, 'pXq10F')
 
@@ -103,7 +108,7 @@ class CarlosSantosFeatureExtraction (FeatureExtractionBase):
         verts_3d = elevatePointsToPlane(verts_3d, planeq)
 
         trianglelist = tri_result['triangles']
-        
+
         new_segs = tri_result['segments']
 
         fullGlObject = OpenGLObject()
@@ -139,27 +144,27 @@ def main ():
     all_points = [points]
 
     data_handler = DataHandler(buildings_path,propertys_path,las_path)
-    bfps, points, solids, property_area, mbb, top_dogs = data_handler.get_slice_from_property(1592) #Korpen: 1558, Sprutan: 1509, Djupet 1593 #Diket 1592 1375 1343 1588 taet data: 1015 843 tre nivaer: 1594 
+    bfps, points, solids, property_area, mbb, top_dogs = data_handler.get_slice_from_property(1592) #Korpen: 1558, Sprutan: 1509, Djupet 1593 #Diket 1592 1375 1343 1588 taet data: 1015 843 tre nivaer: 1594
 
     all_points = points
     #all_points = [points[i] for i in range(len(points)) if bfps[i].id in top_dogs]
     #all_points = [points[0]]
 
 
-    #Cant hull or triangulate if vertices area at E6 scale 
+    #Cant hull or triangulate if vertices area at E6 scale
     offset = np.mean(property_area.points,0)
     for p in points:
         p[:,0:2] -= offset
 
     rg = SunRegionGrowing()
     all_regions_groups = rg.getMultiRegions(all_points)
-    
-    
+
+
     planemaker = LeastSquarePlaneFitting()
-    
-    
+
+
     all_plane_groups = planemaker.fitMultiPlaneGroups(all_points, all_regions_groups)
-    
+
 
     cs_fe = CarlosSantosFeatureExtraction()
     all_fetures_groups = cs_fe.extractMultiFeatureGroups(all_points, all_regions_groups, all_plane_groups)
@@ -168,11 +173,11 @@ def main ():
     colors = [[1,0,0],[0,1,0], [0,0,1], [0.65, 0.65, 0], [0, 0.65, 0.65], [0.65, 0, 0.65], [0.43, 0.43, 0.43]]
     cid = 0
 
-    
 
-    #for points, regions, planes in zip(all_points, all_regions_groups, all_plane_groups): 
-    
-        
+
+    #for points, regions, planes in zip(all_points, all_regions_groups, all_plane_groups):
+
+
     for features_group in all_fetures_groups:
         for feature in features_group:
             roofPolys = feature["roof"].get_triangles_as_polygons()
@@ -207,7 +212,7 @@ def main ():
     pl.show()
 
 def axisEqual3D(ax):
-       
+
     extents = np.array([getattr(ax, 'get_{}lim'.format(dim))() for dim in 'xyz'])
     sz = extents[:,1] - extents[:,0]
     centers = np.mean(extents, axis=1)

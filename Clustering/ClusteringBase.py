@@ -3,7 +3,7 @@ class ClusteringBase():
     def __init__(self):
         self.model = {}
         self.regions = []
-    
+
     def setupGui(self, layout):
         raise NotImplementedError("Please Implement this method")
     def setupParams(self):
@@ -13,6 +13,10 @@ class ClusteringBase():
     def getMultiRegions(self, points):
         self.setupParams()
         regions = []
-        for points in points:
+        ids = range(len(points))
+        for points, id  in zip(points, ids):
+            print("Generating reagions for points group {}".format(id))
             regions.append(self.getRegions(points))
+        print()
+        print("All regions generated")
         return regions

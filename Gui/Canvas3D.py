@@ -9,7 +9,7 @@ from vispy.gloo import gl
 import Gui.Cam3D as Cam3D
 from vispy.geometry import create_cube
 from Utils.ulpy import distinct_colors
-from Utils.pca_utils import * 
+from Utils.pca_utils import *
 from Core import Solidator
 import copy
 from PlaneFitting.PlaneFittingBase import PlaneFittingBase
@@ -37,7 +37,7 @@ void main()
 {
     vec4 position = projection * view * model * vec4(position,1.0);
     v_pos = position.xyz;
-    
+
     v_color = color;
     v_norm = normal;
     gl_Position = position;
@@ -55,7 +55,7 @@ uniform float u_alpha;
 
 void main()
 {
-    
+
     vec3 l0 = normalize(vec3( 1.0, 1.0, 0.2 ));
     vec3 l1 = normalize(vec3( -1.0, -1.0, 0.6 ));
 
@@ -65,7 +65,7 @@ void main()
 
     float d0 = 0.7 * min(dot( norm, l0 ), 1.0);
     float d1 = 0.7 * min(dot( norm, l1 ), 1.0);
-    
+
     vec3 color = v_color;
     gl_FragColor.xyz = min((amb + d0 + d1 ), 1.0) * color;
     gl_FragColor.a = u_alpha;
@@ -275,7 +275,7 @@ void main()
 class Canvas3D(app.Canvas):
 
     def __init__(self, data_handler, parent, currentdata):
-        
+
         app.Canvas.__init__(self, size=(512, 512), title='3d view', keys='interactive')
 
         self.current_data = currentdata
@@ -284,7 +284,7 @@ class Canvas3D(app.Canvas):
             'top_dogs_only': False,
             'draw_polygons': True,
             'draw_points': True,
-            'debug_color': True
+            'debug_colors': True
         }
         self.__parent__ = parent
         self.__data_handler = data_handler
@@ -296,7 +296,7 @@ class Canvas3D(app.Canvas):
 
         self.setupCanvas()
 
-        #Render objects 
+        #Render objects
         self.render_objects = []
 
         #Data... SLICE
@@ -313,12 +313,12 @@ class Canvas3D(app.Canvas):
         self.show()
 
     def setupCanvas(self):
-            #Create the camera         
+            #Create the camera
             self.__camera = Cam3D.Camera([0 ,-200, 150], [0,0,0], [0,0,1], 45.0, self.size[0] / float(self.size[1]), 0.01, 1000.0, is_2d=False)
 
             #Build and setup the glprogram for rendering the models
             self.program_solids = Program(vertex, fragment)
-        
+
             self.program_solids['model'] = vut.rotx(90)
             self.program_solids['model'] = np.eye(4, dtype=np.float32)
             self.program_solids['view'] = self.__camera.view
@@ -340,8 +340,8 @@ class Canvas3D(app.Canvas):
             self.__phi = 0
             self.timer = app.Timer('auto', self.on_timer, start=True)
             self.activate_zoom()
-       
-            
+
+
     def readTheData(self):
         self.__bfps = self.current_data['bfps']
         self.__points = np.array(self.current_data['points'], copy=True)
@@ -350,14 +350,14 @@ class Canvas3D(app.Canvas):
         self.__property_area = self.current_data['property_area']
         self.__mbb = self.current_data['mbb']
         self.__top_dogs = self.current_data['top_dogs']
-        self.__top_dog_points = self.current_data['top_dog_points'] 
+        self.__top_dog_points = self.current_data['top_dog_points']
 
         self.__offset = np.mean(self.__property_area.points,0)
-        
-             
+
+
     def setCanvasData(self):
         #self.__bfps, self.__points, self.__solids, self.__property_area, self.__mbb, self.__top_dogs = self.__data_handler.get_slice_from_property(property_id)
-        
+
         self.readTheData()
         for points in self.__points:
             points[:,0:2] -= self.__offset
@@ -380,7 +380,7 @@ class Canvas3D(app.Canvas):
         self.setup_points_selected = self.setup_points;
         self.readTheData()
         self.setup_points()
-    
+
     def bfps(self):
         self.setup_polygons_selected = self.setup_bfps;
 
@@ -411,7 +411,7 @@ class Canvas3D(app.Canvas):
 
         verts = np.zeros(0, [('position', np.float32, 3),('normal', np.float32, 3),('color', np.float32, 3)]) #start with an empty array
         colors = distinct_colors(2)
-        
+
         for i in range(len(self.__solids)):
             if self.render_params['top_dogs_only']:
                 if self.__bfps[i].id in self.__top_dogs:
@@ -436,13 +436,13 @@ class Canvas3D(app.Canvas):
 
     def setup_features(self):
         verts = np.zeros(0, [('position', np.float32, 3),('normal', np.float32, 3),('color', np.float32, 3)]) #start with an empty array
-        
+
         all_feature_groups = self.current_data['features']
         if self.render_params['top_dogs_only'] or all_feature_groups == None:
             all_feature_groups = self.current_data['top_dog_features']
 
         colors = distinct_colors(2)
-        
+
 
         base_roof_color = [0.35, 0.35, 0.35]
 
@@ -453,15 +453,15 @@ class Canvas3D(app.Canvas):
         origin = [0, 0]
 
         for feature_group, gid in zip(all_feature_groups, range(len(all_feature_groups))):
-            
+
             feature_group_wall_color = yellow
             feature_roof_color = base_roof_color
-            
+
             top_roof_colors = distinct_colors(len(feature_group))
 
             if self.render_params['top_dogs_only'] or self.__bfps[gid].id in self.__top_dogs:
                 feature_group_wall_color = topwallcolor
-                
+
 
             for feature, fid in zip(feature_group, range(len(feature_group))):
                 get_verts = feature['roof'].get_gl_vertex_data(origin)
@@ -471,7 +471,7 @@ class Canvas3D(app.Canvas):
                 data['color'] = feature_roof_color
                 if self.render_params['top_dogs_only'] or self.__bfps[gid].id in self.__top_dogs:
                     data['color'] = top_roof_colors[fid]
-                if self.render_params['debug_color']:
+                if self.render_params['debug_colors']:
                     data['color'] = top_roof_colors[fid]
 
                 verts = np.concatenate([verts, data])
@@ -481,22 +481,22 @@ class Canvas3D(app.Canvas):
                 data['position'] = get_verts['position']
                 data['normal'] = get_verts['normal']
                 data['color'] = feature_group_wall_color
-                if self.render_params['debug_color']:
+                if self.render_params['debug_colors']:
                     data['color'] = [i*1.3 for i in top_roof_colors[fid] ]
-                
+
                 verts = np.concatenate([verts, data])
 
         self.program_solids.bind(VertexBuffer(verts))
 
     def setup_points(self):
-        
+
         self.setup_points_selected = self.setup_points
 
         if self.render_params['top_dogs_only']:
             all_points = np.array(self.__top_dog_points)
         else:
             all_points = np.array(self.__points)
-         
+
         total_n = sum([len(points) for points in all_points])
         data = np.zeros(total_n, [('a_position', np.float32, 3),
                         ('a_bg_color', np.float32, 4),
@@ -516,16 +516,16 @@ class Canvas3D(app.Canvas):
             data[start:start+n]['a_size'] = 10
             data[start:start+n]['a_position'] = points
             start += n
-        
+
         self.program_points.bind(gloo.VertexBuffer(data))
         self.update()
-    
+
     def setup_planes(self):
-        
+
         self.setup_points_selected = self.setup_regions
-        
+
         all_points = np.array(self.__points)
-        
+
         self.selected_planes = self.all_planes
         if self.render_params['top_dogs_only']:
             self.selected_planes = self.top_dog_planes
@@ -540,7 +540,7 @@ class Canvas3D(app.Canvas):
         current_regions = 0
         for i in range(len(all_plane_points)):
             points = all_plane_points[i]
-            
+
             if self.render_params['top_dogs_only']:
 
                 if self.__bfps[i].id in self.__top_dogs :
@@ -549,21 +549,21 @@ class Canvas3D(app.Canvas):
                     current_regions += 1
 
             else:
-                total_n += len(points) 
+                total_n += len(points)
         ##PREPARE DATA ARRAY
         #total_n = 0
         #current_regions = 0
         #for i in range(len(all_plane_points)):
         #    points = all_plane_points[i]
-            
+
         #    if self.__bfps[i].id in self.__top_dogs :
         #        n_in_region = sum([len(region) for region in self.selected_regions[current_regions]])
         #        total_n += len(points)
         #        current_regions += 1
-            
+
         #    elif self.render_params['top_dogs_only'] == False:
-        #        total_n += len(points) 
-                           
+        #        total_n += len(points)
+
         data = np.zeros(total_n, [('a_position', np.float32, 3),
                         ('a_bg_color', np.float32, 4),
                         ('a_fg_color', np.float32, 4),
@@ -591,7 +591,7 @@ class Canvas3D(app.Canvas):
                     self.setupRegionData(datapoints, regions, points)
                     current_regions += 1
                     start += n
-            
+
             else:
                 regions = self.selected_regions[current_regions]
                 m = sum([len(region) for region in regions])
@@ -615,7 +615,7 @@ class Canvas3D(app.Canvas):
         #    n = len(points)
 
         #    if self.__bfps[i].id in self.__top_dogs :
-                
+
         #        regions = self.selected_regions[current_regions]
         #        datapoints = data[start:start+n]
         #        for j in range(len(regions)):
@@ -626,7 +626,7 @@ class Canvas3D(app.Canvas):
         #        self.setupRegionData(datapoints, regions, points)
         #        current_regions += 1
         #        start += n
-            
+
         #    elif self.render_params['top_dogs_only'] == False:
         #        n = len(points)
         #        data[start:start+n]['a_bg_color'] = np.array([0.7,0.7,0.9,0.5], dtype=np.float32)
@@ -635,7 +635,7 @@ class Canvas3D(app.Canvas):
 
             data[0:total_n]['a_fg_color'] = 0, 0, 0, 1
             data[0:total_n]['a_size'] = 10
-        
+
         #BIND DATA TO GL PROGRAM
         self.program_points.bind(gloo.VertexBuffer(data))
         self.update()
@@ -662,7 +662,7 @@ class Canvas3D(app.Canvas):
         current_regions = 0
         for i in range(len(all_points)):
             points = all_points[i]
-            
+
             if self.render_params['top_dogs_only']:
 
                 if self.__bfps[i].id in self.__top_dogs :
@@ -671,8 +671,8 @@ class Canvas3D(app.Canvas):
                     current_regions += 1
 
             else:
-                total_n += len(points) 
-                           
+                total_n += len(points)
+
         data = np.zeros(total_n, [('a_position', np.float32, 3),
                         ('a_bg_color', np.float32, 4),
                         ('a_fg_color', np.float32, 4),
@@ -694,7 +694,7 @@ class Canvas3D(app.Canvas):
                     self.setupRegionData(datapoints, regions, points)
                     current_regions += 1
                     start += n
-            
+
             else:
                 regions = self.selected_regions[current_regions]
                 m = sum([len(region) for region in regions])
@@ -712,15 +712,15 @@ class Canvas3D(app.Canvas):
 
             data[0:total_n]['a_fg_color'] = 0, 0, 0, 1
             data[0:total_n]['a_size'] = 10
-        
+
         #BIND DATA TO GL PROGRAM
         self.program_points.bind(gloo.VertexBuffer(data))
         self.update()
-    
+
     def setupRegionData(self, datapoints, regions, points):
         n_regions = len(regions)
         colors = distinct_colors(n_regions)
-       
+
         for region_idx in range(n_regions):
             n_points_in_region = len(regions[region_idx])
             r,g,b = colors[region_idx]
@@ -730,7 +730,7 @@ class Canvas3D(app.Canvas):
 
 
     def reset_camera(self):
-        #Create the camera         
+        #Create the camera
         self.__camera = Cam3D.Camera([0 ,-100, 50], [0,0,0], [0,0,1], 45.0, self.size[0] / float(self.size[1]), 0.01, 1000.0, is_2d=False)
 
         self.program_solids['view'] = self.__camera.view
@@ -747,15 +747,15 @@ class Canvas3D(app.Canvas):
     def on_mouse_press(self, event):
 
         if event.button == 1:
-            
+
             self.__camera.is_move = True
             self.__camera.is_rotate = False
-        
+
         if event.button == 2:
-            
+
             self.__camera.is_move = False
             self.__camera.is_rotate = True
-        
+
         self.__camera.prev_mouse_pos = event.pos
 
     def on_mouse_release(self, event):
@@ -781,26 +781,26 @@ class Canvas3D(app.Canvas):
             self.update()
 
         self.__camera.prev_mouse_pos = event.pos
-    
+
     def on_mouse_wheel(self, event):
-    
+
         self.__camera.scale(event.delta[1])
         self.program_solids['view'] = self.__camera.view
         self.program_points['u_view'] = self.__camera.view
-        self.program_points['u_size'] =  0.3 +  0.8 /self.__camera.zoom_factor #magicnumber zoom on the poor camera 
+        self.program_points['u_size'] =  0.3 +  0.8 /self.__camera.zoom_factor #magicnumber zoom on the poor camera
         self.update()
-    
+
 
     def draw_model(self):
-        
+
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glDepthMask(gl.GL_TRUE)
         gl.glFrontFace(gl.GL_CCW)
         gl.glDisable(gl.GL_BLEND)
         gl.glBlendFunc(gl.GL_ZERO, gl.GL_ZERO)
-        
+
         if self.render_params['transparent']:
-            
+
             gl.glEnable(gl.GL_BLEND)
             gl.glDepthMask(gl.GL_FALSE)
             gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
@@ -815,22 +815,22 @@ class Canvas3D(app.Canvas):
         gl.glDepthMask(gl.GL_TRUE)
 
         self.program_points.draw('points')
-   
-    
+
+
     def on_draw(self, event):
 
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         gl.glClear(gl.GL_DEPTH_BUFFER_BIT)
-        
+
         if self.render_params['draw_polygons']:
             self.draw_model()
-        
+
         if self.render_params['draw_points']:
             self.draw_points()
 
 
     def on_resize(self, event):
-        
+
         self.activate_zoom()
 
 
@@ -843,10 +843,10 @@ class Canvas3D(app.Canvas):
 
 
     def on_timer(self, event):
-        
+
         self.__theta += .5
         self.__phi += .5
-        
+
         self.__camera.roty(.0)
         self.program_solids['view'] = self.__camera.view
         self.program_points['u_view'] = self.__camera.view
